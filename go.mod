@@ -2,7 +2,10 @@ module github.com/MonkieeBoi/wordle-helper
 
 go 1.24.5
 
-require github.com/charmbracelet/bubbletea v1.3.6
+require (
+	github.com/charmbracelet/bubbles v0.21.0
+	github.com/charmbracelet/bubbletea v1.3.6
+)
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
