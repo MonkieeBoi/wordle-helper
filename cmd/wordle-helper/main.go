@@ -5,41 +5,31 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/bubbles/spinner"
-	"github.com/charmbracelet/bubbles/viewport"
+	"github.com/MonkieeBoi/wordle-helper/internal/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 var letters map[rune]bool
 
 type model struct {
-	green           []rune
-	yello           map[rune]bool
-	greys           map[rune]bool
-	spinner         spinner.Model
-	viewport        viewport.Model
-	viewportStyle   lipgloss.Style
-	viewportContent string
-	loading         bool
+	green []rune
+	yello map[rune][]int
+	greys map[rune]bool
+	list  list.Model
 }
 
 func initialModel() model {
 	m := model{
-		green:         []rune{'0', '0', '0', '0', '0'},
-		yello:         make(map[rune]bool, len(letters)),
-		greys:         make(map[rune]bool, len(letters)),
-		spinner:       spinner.New(),
-		viewport:      viewport.New(0, 0),
-		viewportStyle: lipgloss.NewStyle(),
-		loading:       true,
+		green: []rune{'0', '0', '0', '0', '0'},
+		yello: make(map[rune][]int, len(letters)),
+		greys: make(map[rune]bool, len(letters)),
+		list:  list.New(),
 	}
-	m.spinner.Spinner = spinner.Monkey
 	return m
 }
 
 func (m model) Init() tea.Cmd {
-	return m.spinner.Tick
+	return m.list.Init()
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -54,32 +44,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			cmds = append(cmds, tea.Quit)
 		}
-	case tea.WindowSizeMsg:
-		m.viewport.Width = msg.Width
-		m.viewport.Height = msg.Height
-		m.viewportStyle = m.viewportStyle.Width(msg.Width)
-		m.viewport.SetContent(m.viewportStyle.Render(m.viewportContent))
 	}
 
-	if m.loading {
-		m.spinner, cmd = m.spinner.Update(msg)
-		cmds = append(cmds, cmd)
-	} else {
-		m.viewport, cmd = m.viewport.Update(msg)
-		cmds = append(cmds, cmd)
-	}
+	m.list, cmd = m.list.Update(msg)
+	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
 
 func (m model) View() string {
-	s := ""
-	if m.loading {
-		spin := m.spinner.View()
-		s = fmt.Sprintf("%s Loading Words %s", spin, spin)
-	} else {
-		s = m.viewport.View()
-	}
+	s := m.list.View()
 	return s
 }
 
