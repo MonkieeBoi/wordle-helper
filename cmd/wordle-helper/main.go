@@ -6,24 +6,44 @@ import (
 	"os"
 
 	"github.com/MonkieeBoi/wordle-helper/internal/list"
+	"github.com/MonkieeBoi/wordle-helper/internal/wordle"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
+
+type styles struct {
+	wordleStyles map[wordle.Colour]lipgloss.Style
+}
 
 var letters map[rune]bool
 
 type model struct {
-	green []rune
-	yello map[rune][]int
-	greys map[rune]bool
-	list  list.Model
+	wordle wordle.Wordle
+	list   list.Model
+	styles styles
 }
 
 func initialModel() model {
+	s := styles{
+		wordleStyles: map[wordle.Colour]lipgloss.Style{
+			wordle.GREEN: lipgloss.NewStyle().
+				Background(lipgloss.Color("2")).
+				Foreground(lipgloss.Color("0")),
+			wordle.YELLOW: lipgloss.NewStyle().
+				Background(lipgloss.Color("3")).
+				Foreground(lipgloss.Color("0")),
+			wordle.GREY: lipgloss.NewStyle().
+				Background(lipgloss.Color("0")).
+				Foreground(lipgloss.Color("7")),
+			wordle.EMPTY: lipgloss.NewStyle().
+				Background(lipgloss.Color("0")).
+				Foreground(lipgloss.Color("7")),
+		},
+	}
 	m := model{
-		green: []rune{'0', '0', '0', '0', '0'},
-		yello: make(map[rune][]int, len(letters)),
-		greys: make(map[rune]bool, len(letters)),
-		list:  list.New(),
+		wordle: wordle.NewWordle(),
+		list:   list.New(),
+		styles: s,
 	}
 	return m
 }
