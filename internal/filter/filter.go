@@ -28,6 +28,12 @@ func InitWords(wordFile string) error {
 func match(word string, green [5]rune, yello map[rune][]int, greys map[rune]bool) bool {
 	yelloMatch := make(map[rune]bool, len(yello))
 	for i, c := range word {
+		if slices.Contains(yello[c], i) {
+			return false
+		}
+		if _, ok := yello[c]; ok {
+			yelloMatch[c] = true
+		}
 		if green[i] != ' ' {
 			if c == green[i] {
 				continue
@@ -37,12 +43,6 @@ func match(word string, green [5]rune, yello map[rune][]int, greys map[rune]bool
 		}
 		if _, grey := greys[c]; grey {
 			return false
-		}
-		if slices.Contains(yello[c], i) {
-			return false
-		}
-		if _, ok := yello[c]; ok {
-			yelloMatch[c] = true
 		}
 	}
 	return len(yelloMatch) == len(yello)
