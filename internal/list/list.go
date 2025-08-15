@@ -17,6 +17,10 @@ type Model struct {
 	loading  bool
 }
 
+type SetContentMsg struct {
+	Content string
+}
+
 func New() Model {
 	return Model{
 		spinner:  spinner.New(spinner.WithSpinner(spinner.Monkey)),
@@ -40,7 +44,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.viewport.Width = msg.Width
 		m.viewport.Height = msg.Height
-		m.style = m.style.Width(msg.Width)
+		m.style = m.style.Width(m.viewport.Width)
+		m.viewport.SetContent(m.style.Render(m.content))
+	case SetContentMsg:
+		m.content = msg.Content
 		m.viewport.SetContent(m.style.Render(m.content))
 	}
 
