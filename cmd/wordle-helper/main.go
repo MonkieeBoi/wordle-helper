@@ -93,9 +93,41 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+func cellView(c wordle.Char, s styles) string {
+	style := s.wordleStyles[c.Colour]
+	padTB := style.Render("       ")
+	padLR := style.Render("   ")
+	ch := lipgloss.JoinHorizontal(0, padLR, style.Render(string(c.Val)), padLR)
+	return lipgloss.JoinVertical(lipgloss.Center, padTB, ch, padTB)
+}
+
+func wordView(w wordle.Word, s styles) string {
+	cells := []string{}
+	for _, c := range w {
+		cells = append(cells, cellView(c, s))
+	}
+	return lipgloss.JoinHorizontal(0, cells...)
+}
+
+func boardView(w wordle.Wordle, s styles) string {
+	words := []string{}
+	for _, word := range w.Board {
+		renderedWord := ""
+		renderedWord = wordView(word, s)
+		words = append(words, renderedWord)
+	}
+	return lipgloss.JoinVertical(0, words...)
+}
+
 func (m model) View() string {
-	s := m.list.View()
-	return s
+	list := m.list.View()
+	board := boardView(m.wordle, m.styles)
+	input := wordView(m.word, m.styles)
+	right := input
+	if len(m.wordle.Board) != 0 {
+		right = lipgloss.JoinVertical(0, board, input)
+	}
+	return lipgloss.JoinHorizontal(0, right, list)
 }
 
 func main() {
