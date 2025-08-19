@@ -9,7 +9,7 @@ var LETTERS map[rune]bool = make(map[rune]bool)
 
 const (
 	WORD_LEN = 5
-	GUESSES  = 6
+	GUESSES  = 5
 )
 
 type Greens [WORD_LEN]rune
@@ -17,10 +17,10 @@ type Yellows map[rune][]int
 type Greys map[rune]bool
 
 type Wordle struct {
-	board []Word
-	green Greens
-	yello Yellows
-	greys Greys
+	Board []Word
+	Green Greens
+	Yello Yellows
+	Greys Greys
 }
 
 type Colour int
@@ -41,14 +41,14 @@ type Char struct {
 
 func NewWordle() Wordle {
 	return Wordle{
-		green: Greens{' ', ' ', ' ', ' ', ' '},
-		yello: make(Yellows, len(LETTERS)),
-		greys: make(Greys, len(LETTERS)),
+		Green: Greens{' ', ' ', ' ', ' ', ' '},
+		Yello: make(Yellows, len(LETTERS)),
+		Greys: make(Greys, len(LETTERS)),
 	}
 }
 
 func (w *Wordle) AddWord(word Word) error {
-	if len(w.board) >= GUESSES {
+	if len(w.Board) >= GUESSES {
 		return fmt.Errorf("Guess count reached limit of %d", GUESSES)
 	}
 	for i, c := range word {
@@ -56,20 +56,21 @@ func (w *Wordle) AddWord(word Word) error {
 		case EMPTY:
 			return fmt.Errorf("Cannot add empty colour chars")
 		case GREEN:
-			if w.green[i] != ' ' && c.Val != w.green[i] {
+			if w.Green[i] != ' ' && c.Val != w.Green[i] {
 				return fmt.Errorf("Invalid green at index %d", i)
 			}
-			if w.green[i] == ' ' {
-				w.green[i] = c.Val
+			if w.Green[i] == ' ' {
+				w.Green[i] = c.Val
 			}
 		case GREY:
-			w.greys[c.Val] = true
+			w.Greys[c.Val] = true
 		case YELLOW:
-			if !slices.Contains(w.yello[c.Val], i) {
-				w.yello[c.Val] = append(w.yello[c.Val], i)
+			if !slices.Contains(w.Yello[c.Val], i) {
+				w.Yello[c.Val] = append(w.Yello[c.Val], i)
 			}
 		}
 	}
+	w.Board = append(w.Board, word)
 	return nil
 }
 
