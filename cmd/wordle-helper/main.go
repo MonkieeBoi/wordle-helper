@@ -82,6 +82,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.active = max(0, m.active-1)
 			m.word[m.active].Colour = wordle.EMPTY
 			m.word[m.active].Val = '_'
+		case "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+			"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z":
+			if m.active < wordle.WORD_LEN {
+				m.word[m.active].Val = []rune(msg.String())[0]
+				if m.word[m.active].Colour == wordle.EMPTY {
+					m.word[m.active].Colour = wordle.GREY
+				}
+				m.active = min(wordle.WORD_LEN, m.active+1)
+				if m.active < wordle.WORD_LEN {
+					m.word[m.active].Val = '_'
+				}
+			}
 		case "ctrl+c":
 			cmds = append(cmds, tea.Quit)
 		}
