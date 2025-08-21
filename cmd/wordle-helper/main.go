@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/MonkieeBoi/wordle-helper/internal/filter"
 	"github.com/MonkieeBoi/wordle-helper/internal/list"
@@ -93,6 +94,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.active < wordle.WORD_LEN {
 					m.word[m.active].Val = '_'
 				}
+			}
+		case "enter":
+			if err := m.wordle.AddWord(m.word); err == nil {
+				m.active = 0
+				m.word = wordle.Word{
+					wordle.Char{Val: '_'},
+					wordle.Char{Val: ' '},
+					wordle.Char{Val: ' '},
+					wordle.Char{Val: ' '},
+					wordle.Char{Val: ' '},
+				}
+				m.list, cmd = m.list.Update(list.SetContentMsg{Content: strings.Join(
+					filter.GetWords(
+						m.wordle.Green,
+						m.wordle.Yello,
+						m.wordle.Greys,
+					),
+					" ",
+				)})
+				cmds = append(cmds, cmd)
 			}
 		case "ctrl+c":
 			cmds = append(cmds, tea.Quit)
