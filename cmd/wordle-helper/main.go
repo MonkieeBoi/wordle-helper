@@ -69,6 +69,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.list, cmd = m.list.Update(list.SizeMsg{
+			Width: msg.Width - (wordle.WORD_LEN * 7 + 2),
+			Height: msg.Height,
+		})
+		cmds = append(cmds, cmd)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+g":
@@ -105,7 +111,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					wordle.Char{Val: ' '},
 					wordle.Char{Val: ' '},
 				}
-				m.list, cmd = m.list.Update(list.SetContentMsg{Content: strings.Join(
+				m.list, cmd = m.list.Update(list.ContentMsg{Content: strings.Join(
 					filter.GetWords(
 						m.wordle.Green,
 						m.wordle.Yello,
