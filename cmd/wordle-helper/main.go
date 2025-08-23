@@ -62,6 +62,70 @@ func (m model) Init() tea.Cmd {
 	return m.list.Init()
 }
 
+func (m model) updateKeys(msg tea.KeyMsg) (model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+	switch msg.Type {
+	case tea.KeyBackspace:
+		if m.active < wordle.WORD_LEN {
+			m.word[m.active].Val = ' '
+			m.word[m.active].Colour = wordle.EMPTY
+		}
+		m.active = max(0, m.active-1)
+		m.word[m.active].Colour = wordle.EMPTY
+		m.word[m.active].Val = '_'
+	case tea.KeyRunes:
+		if m.active >= wordle.WORD_LEN {
+			return m, nil
+		}
+		s := msg.String()
+		r := []rune(s)[len(s)-1]
+		if !('A' <= r && r <= 'Z') && !('a' <= r && r <= 'z') {
+			return m, nil
+		}
+		if msg.Alt {
+			m.word[m.active].Colour = wordle.GREEN
+		}
+		if r <= 'Z' {
+			m.word[m.active].Colour = wordle.YELLOW
+			r += 'a' - 'A'
+		}
+		m.word[m.active].Val = r
+		if m.word[m.active].Colour == wordle.EMPTY {
+			m.word[m.active].Colour = wordle.GREY
+		}
+		m.active = min(wordle.WORD_LEN, m.active+1)
+		if m.active < wordle.WORD_LEN {
+			m.word[m.active].Val = '_'
+		}
+	case tea.KeyEnter:
+		if err := m.wordle.AddWord(m.word); err == nil {
+			m.active = 0
+			m.word = wordle.Word{
+				wordle.Char{Val: '_'},
+				wordle.Char{Val: ' '},
+				wordle.Char{Val: ' '},
+				wordle.Char{Val: ' '},
+				wordle.Char{Val: ' '},
+			}
+			m.list, cmd = m.list.Update(list.ContentMsg{Content: strings.Join(
+				filter.GetWords(
+					m.wordle.Green,
+					m.wordle.Yello,
+					m.wordle.Greys,
+				),
+				" ",
+			)})
+			cmds = append(cmds, cmd)
+		}
+	case tea.KeyCtrlC:
+		cmds = append(cmds, tea.Quit)
+	}
+	return m, tea.Batch(cmds...)
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -71,59 +135,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list, cmd = m.list.Update(list.SizeMsg{
-			Width: msg.Width - (wordle.WORD_LEN * 7 + 2),
+			Width:  msg.Width - (wordle.WORD_LEN*7 + 2),
 			Height: msg.Height,
 		})
 		cmds = append(cmds, cmd)
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+g":
-			m.word[m.active].Colour = wordle.GREEN
-		case "ctrl+y":
-			m.word[m.active].Colour = wordle.YELLOW
-		case "backspace":
-			if m.active < wordle.WORD_LEN {
-				m.word[m.active].Val = ' '
-				m.word[m.active].Colour = wordle.EMPTY
-			}
-			m.active = max(0, m.active-1)
-			m.word[m.active].Colour = wordle.EMPTY
-			m.word[m.active].Val = '_'
-		case "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
-			"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z":
-			if m.active < wordle.WORD_LEN {
-				m.word[m.active].Val = []rune(msg.String())[0]
-				if m.word[m.active].Colour == wordle.EMPTY {
-					m.word[m.active].Colour = wordle.GREY
-				}
-				m.active = min(wordle.WORD_LEN, m.active+1)
-				if m.active < wordle.WORD_LEN {
-					m.word[m.active].Val = '_'
-				}
-			}
-		case "enter":
-			if err := m.wordle.AddWord(m.word); err == nil {
-				m.active = 0
-				m.word = wordle.Word{
-					wordle.Char{Val: '_'},
-					wordle.Char{Val: ' '},
-					wordle.Char{Val: ' '},
-					wordle.Char{Val: ' '},
-					wordle.Char{Val: ' '},
-				}
-				m.list, cmd = m.list.Update(list.ContentMsg{Content: strings.Join(
-					filter.GetWords(
-						m.wordle.Green,
-						m.wordle.Yello,
-						m.wordle.Greys,
-					),
-					" ",
-				)})
-				cmds = append(cmds, cmd)
-			}
-		case "ctrl+c":
-			cmds = append(cmds, tea.Quit)
-		}
+		m, cmd = m.updateKeys(msg)
+		cmds = append(cmds, cmd)
 	}
 
 	m.list, cmd = m.list.Update(msg)
