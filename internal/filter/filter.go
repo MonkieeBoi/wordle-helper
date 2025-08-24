@@ -42,7 +42,9 @@ func match(word string, green [5]rune, yello map[rune][]int, greys map[rune]bool
 			}
 		}
 		if _, grey := greys[c]; grey {
-			return false
+			if _, ok := yello[c]; !ok {
+				return false
+			}
 		}
 	}
 	return len(yelloMatch) == len(yello)
