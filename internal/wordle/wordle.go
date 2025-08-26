@@ -39,6 +39,15 @@ type Char struct {
 	Colour Colour
 }
 
+func NewWord() Word {
+	w := Word{}	
+	for i := range w {
+		w[i].Colour = EMPTY
+		w[i].Val = ' '
+	}
+	return w
+}
+
 func NewWordle() Wordle {
 	return Wordle{
 		Green: Greens{' ', ' ', ' ', ' ', ' '},

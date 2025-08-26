@@ -43,17 +43,13 @@ func initialModel() model {
 				Blink(true),
 		},
 	}
+	w := wordle.NewWord()
+	w[0].Val = '_'
 	m := model{
 		wordle: wordle.NewWordle(),
 		list:   list.New(),
 		styles: s,
-		word: wordle.Word{
-			wordle.Char{Val: '_'},
-			wordle.Char{Val: ' '},
-			wordle.Char{Val: ' '},
-			wordle.Char{Val: ' '},
-			wordle.Char{Val: ' '},
-		},
+		word:   w,
 	}
 	return m
 }
@@ -103,13 +99,8 @@ func (m model) updateKeys(msg tea.KeyMsg) (model, tea.Cmd) {
 	case tea.KeyEnter:
 		if err := m.wordle.AddWord(m.word); err == nil {
 			m.active = 0
-			m.word = wordle.Word{
-				wordle.Char{Val: '_'},
-				wordle.Char{Val: ' '},
-				wordle.Char{Val: ' '},
-				wordle.Char{Val: ' '},
-				wordle.Char{Val: ' '},
-			}
+			m.word = wordle.NewWord()
+			m.word[0].Val = '_'
 			m.list, cmd = m.list.Update(list.ContentMsg{Content: strings.Join(
 				filter.GetWords(
 					m.wordle.Green,
