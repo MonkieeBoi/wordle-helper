@@ -22,8 +22,11 @@ type ContentMsg struct {
 }
 
 func New() Model {
+	v := viewport.New(0, 0)
+	v.KeyMap.Down.SetKeys("ctrl+j")
+	v.KeyMap.Up.SetKeys("ctrl+k")
 	return Model{
-		viewport: viewport.New(0, 0),
+		viewport: v,
 		style:    lipgloss.NewStyle().AlignHorizontal(lipgloss.Center),
 	}
 }
