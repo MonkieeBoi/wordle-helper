@@ -103,9 +103,9 @@ func (m model) updateKeys(msg tea.KeyMsg) (model, tea.Cmd) {
 			m.word[0].Val = '_'
 			m.list, cmd = m.list.Update(list.ContentMsg{Content: strings.Join(
 				filter.GetWords(
-					m.wordle.Green,
-					m.wordle.Yello,
-					m.wordle.Greys,
+					m.wordle.Greens(),
+					m.wordle.Yellows(),
+					m.wordle.Greys(),
 				),
 				" ",
 			)})
@@ -126,7 +126,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list, cmd = m.list.Update(list.SizeMsg{
-			Width:  msg.Width - (wordle.WORD_LEN*7 + 2),
+			Width:  msg.Width - (wordle.WORD_LEN * 7),
 			Height: msg.Height,
 		})
 		cmds = append(cmds, cmd)
@@ -159,7 +159,7 @@ func wordView(w wordle.Word, s styles) string {
 
 func boardView(w wordle.Wordle, s styles) string {
 	words := []string{}
-	for _, word := range w.Board {
+	for _, word := range w.Board() {
 		renderedWord := ""
 		renderedWord = wordView(word, s)
 		words = append(words, renderedWord)
@@ -172,7 +172,7 @@ func (m model) View() string {
 	board := boardView(m.wordle, m.styles)
 	input := wordView(m.word, m.styles)
 	right := input
-	if len(m.wordle.Board) != 0 {
+	if len(m.wordle.Board()) != 0 {
 		right = lipgloss.JoinVertical(0, board, input)
 	}
 	return lipgloss.JoinHorizontal(0, right, list)

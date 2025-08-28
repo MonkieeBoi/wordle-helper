@@ -2,6 +2,7 @@ package wordle
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 )
 
@@ -12,15 +13,16 @@ const (
 	GUESSES  = 5
 )
 
+type Board []Word
 type Greens [WORD_LEN]rune
 type Yellows map[rune][]int
 type Greys map[rune]bool
 
 type Wordle struct {
-	Board []Word
-	Green Greens
-	Yello Yellows
-	Greys Greys
+	board []Word
+	green Greens
+	yello Yellows
+	greys Greys
 }
 
 type Colour int
@@ -40,7 +42,7 @@ type Char struct {
 }
 
 func NewWord() Word {
-	w := Word{}	
+	w := Word{}
 	for i := range w {
 		w[i].Colour = EMPTY
 		w[i].Val = ' '
@@ -50,14 +52,14 @@ func NewWord() Word {
 
 func NewWordle() Wordle {
 	return Wordle{
-		Green: Greens{' ', ' ', ' ', ' ', ' '},
-		Yello: make(Yellows, len(LETTERS)),
-		Greys: make(Greys, len(LETTERS)),
+		green: Greens{' ', ' ', ' ', ' ', ' '},
+		yello: make(Yellows, len(LETTERS)),
+		greys: make(Greys, len(LETTERS)),
 	}
 }
 
 func (w *Wordle) AddWord(word Word) error {
-	if len(w.Board) >= GUESSES {
+	if len(w.board) >= GUESSES {
 		return fmt.Errorf("Guess count reached limit of %d", GUESSES)
 	}
 	for i, c := range word {
@@ -65,22 +67,48 @@ func (w *Wordle) AddWord(word Word) error {
 		case EMPTY:
 			return fmt.Errorf("Cannot add empty colour chars")
 		case GREEN:
-			if w.Green[i] != ' ' && c.Val != w.Green[i] {
+			if w.green[i] != ' ' && c.Val != w.green[i] {
 				return fmt.Errorf("Invalid green at index %d", i)
 			}
-			if w.Green[i] == ' ' {
-				w.Green[i] = c.Val
+			if w.green[i] == ' ' {
+				w.green[i] = c.Val
 			}
 		case GREY:
-			w.Greys[c.Val] = true
+			w.greys[c.Val] = true
 		case YELLOW:
-			if !slices.Contains(w.Yello[c.Val], i) {
-				w.Yello[c.Val] = append(w.Yello[c.Val], i)
+			if !slices.Contains(w.yello[c.Val], i) {
+				w.yello[c.Val] = append(w.yello[c.Val], i)
 			}
 		}
 	}
-	w.Board = append(w.Board, word)
+	w.board = append(w.board, word)
 	return nil
+}
+
+func (w Wordle) Board() Board {
+	b := make(Board, len(w.board))
+	copy(b, w.board)
+	return b
+}
+
+func (w Wordle) Greens() Greens {
+	return w.green
+}
+
+func (w Wordle) Yellows() Yellows {
+	y := make(Yellows, len(w.yello))
+	for k, v := range w.yello {
+		s := make([]int, len(v))
+		copy(s, v)
+		y[k] = s
+	}
+	return y
+}
+
+func (w Wordle) Greys() Greys {
+	g := make(Greys, len(w.greys))
+	maps.Copy(g, w.greys)
+	return g
 }
 
 func init() {
