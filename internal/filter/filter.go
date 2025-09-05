@@ -57,6 +57,7 @@ func GetWords(green [5]rune, yello map[rune][]int, greys map[rune]bool) []string
 			words = append(words, word)
 		}
 	}
+	slices.Sort(words)
 	return words
 }
 

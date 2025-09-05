@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/MonkieeBoi/wordle-helper/internal/filter"
@@ -179,11 +180,12 @@ func (m model) View() string {
 }
 
 func main() {
-	wordFile := flag.String("f", "", "Text file containing words on seperate lines")
+	fallback := path.Join(os.Getenv("XDG_DATA_HOME"), "wordle-helper", "words")
+	wordFile := flag.String("f", fallback, "Text file containing words on seperate lines")
 	flag.Parse()
 	err := filter.InitWords(*wordFile)
 	if err != nil {
-		fmt.Println("Could not open word file!")
+		fmt.Printf("Could not open words file at '%s'\n", *wordFile)
 		os.Exit(1)
 	}
 	m := initialModel()
